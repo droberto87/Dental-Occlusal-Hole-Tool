@@ -74,7 +74,7 @@ const wikiContent = {
     <h3>2. Placing Holes</h3>
     <p>Click <b>Add Channel</b> or <b>double-click</b> on the model surface. The hole will pierce the model along the camera's view axis.</p>
     <h3>3. Editing</h3>
-    <p>Drag the <b>markers</b> to move endpoints. Use the <b>mouse wheel</b> over a marker to change its diameter.</p>
+    <p>Drag the <b>markers</b> to move endpoints. Hold <b>Ctrl / Cmd</b> while dragging to move the entire hole at once. Use the <b>mouse wheel</b> over a marker to change its diameter.</p>
     <h3>4. Export</h3>
     <p>Click <b>Export STL</b> to download the final cut model.</p>
   `,
@@ -84,7 +84,7 @@ const wikiContent = {
     <h3>2. Löcher platzieren</h3>
     <p>Klicken Sie auf <b>Kanal hinzufügen</b> oder machen Sie einen <b>Doppelklick</b> auf die Modelloberfläche.</p>
     <h3>3. Bearbeiten</h3>
-    <p>Ziehen Sie die <b>Marker</b>, um sie zu verschieben. Nutzen Sie das <b>Mausrad</b> über einem Marker, um den Durchmesser zu ändern.</p>
+    <p>Ziehen Sie die <b>Marker</b>, um sie zu verschieben. Halten Sie <b>Strg / Cmd</b> gedrückt, um das gesamte Loch zu verschieben. Nutzen Sie das <b>Mausrad</b> über einem Marker, um den Durchmesser zu ändern.</p>
     <h3>4. Exportieren</h3>
     <p>Klicken Sie auf <b>STL Exportieren</b>, um das fertige Modell herunterzuladen.</p>
   `,
@@ -94,7 +94,7 @@ const wikiContent = {
     <h3>2. Furatok elhelyezése</h3>
     <p>Használja az <b>Új furat elhelyezése</b> gombot vagy a <b>dupla kattintást</b> a modell felületén. A furat a kamera nézési iránya mentén jön létre.</p>
     <h3>3. Szerkesztés</h3>
-    <p>A <b>marker gömbök</b> húzásával mozgathatja a végpontokat. Az <b>egérgörgővel</b> a marker felett állva módosíthatja az átmérőt.</p>
+    <p>A <b>marker gömbök</b> húzásával mozgathatja a végpontokat. Tartsa nyomva a <b>Ctrl / Cmd</b> billentyűt a teljes furat eltolásához. Az <b>egérgörgővel</b> a marker felett állva módosíthatja az átmérőt.</p>
     <h3>4. Exportálás</h3>
     <p>Kattintson a <b>Kész modell letöltése</b> gombra a mentéshez.</p>
   `

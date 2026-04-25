@@ -18,6 +18,7 @@ A szoftver egy egyedülálló, kamera-alapú "átlövést" használ:
 
 ### 3. Furatok szerkesztése
 - **Mozgatás:** Kattintson a furat végén található **marker gömbre** (kék/sárga) és húzza a modell felszínén a kívánt helyre.
+- **Teljes furat eltolása (Pan):** Tartsa nyomva a **Ctrl** (Mac-en **Cmd**) billentyűt, miközben húzza az egyik markert. Így a teljes furat egyben mozgatható, megtartva az eredeti irányát és hosszát.
 - **Átmérő módosítása:**
     - Válassza ki a furatot a listából vagy kattintson rá a 3D nézetben.
     - Használja az **egérgörgőt** a marker felett az átmérő azonnali (0.2 mm-es lépésközű) állításához.
