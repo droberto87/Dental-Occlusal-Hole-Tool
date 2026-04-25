@@ -1,19 +1,78 @@
 import React, { useRef, useState } from 'react';
 import useStore from '../store/useStore';
-import { Upload, Download, Undo, Redo, Plus, MousePointerClick, Trash2, Sun, Moon } from 'lucide-react';
+import { Upload, Download, Undo, Redo, Plus, MousePointerClick, Trash2, Sun, Moon, Languages } from 'lucide-react';
 import { parseSTLWithAttributes, exportSTLWithAttributes } from '../utils/stlParser';
 import { processCSG } from '../utils/csgProcessor';
+
+const translations = {
+  en: {
+    title: 'Dental Occlusal Hole Tool',
+    subtitle: 'CAD Hole Visualization',
+    import: 'Import STL',
+    export: 'Export STL',
+    exporting: 'Exporting...',
+    pierce: 'Click on Model to Pierce',
+    addChannel: 'Add Channel',
+    diameter: 'Diameter',
+    holes: 'Holes List',
+    hole: 'Hole',
+    undo: 'Undo',
+    redo: 'Redo',
+    version: 'v1.0.2 Stable',
+    disclaimer: 'Dental visualization tool. Always verify final STL model before production!',
+    errorImport: 'Failed to read STL file.',
+    errorExport: 'Failed to export model.'
+  },
+  de: {
+    title: 'Dental Okklusal-Loch-Tool',
+    subtitle: 'CAD-Loch-Visualisierung',
+    import: 'STL Importieren',
+    export: 'STL Exportieren',
+    exporting: 'Exportiere...',
+    pierce: 'Klicken Sie zum Durchstechen',
+    addChannel: 'Kanal hinzufügen',
+    diameter: 'Durchmesser',
+    holes: 'Loch-Liste',
+    hole: 'Loch',
+    undo: 'Rückgängig',
+    redo: 'Wiederholen',
+    version: 'v1.0.2 Stabil',
+    disclaimer: 'Dentales Visualisierungstool. Vor der Produktion immer das finale STL-Modell prüfen!',
+    errorImport: 'STL-Datei konnte nem gelesen werden.',
+    errorExport: 'Export fehlgeschlagen.'
+  },
+  hu: {
+    title: 'Dental Occlusal Hole Tool',
+    subtitle: 'CAD fúrás vizualizáció',
+    import: 'STL Importálása',
+    export: 'Kész modell letöltése',
+    exporting: 'Exportálás...',
+    pierce: 'Kattintson a modellre',
+    addChannel: 'Új furat elhelyezése',
+    diameter: 'Átmérő',
+    holes: 'Furatok listája',
+    hole: 'Furat',
+    undo: 'Vissza',
+    redo: 'Előre',
+    version: 'v1.0.2 Stabil',
+    disclaimer: 'Fogászati vizualizációs segédeszköz. Gyártás előtt mindig ellenőrizze a végleges STL modellt!',
+    errorImport: 'Hiba történt az STL beolvasása során.',
+    errorExport: 'Hiba történt az exportálás során.'
+  }
+};
 
 export default function Sidebar() {
   const { 
     models, activeModelId, activeChannelId,
     defaultDiameter, setDefaultDiameter, 
-    setIsEditing, placementStep, isEditing, 
+    setIsEditing, isEditing, 
     undo, redo, historyIndex, history,
     updateChannel, removeChannel,
-    darkMode, toggleDarkMode
+    darkMode, toggleDarkMode,
+    language, setLanguage
   } = useStore();
 
+  const t = translations[language] || translations.en;
   const activeModel = models.find(m => m.id === activeModelId);
   const activeChannel = activeModel?.channels?.find(c => c.id === activeChannelId);
   const currentDiameter = activeChannel ? activeChannel.diameter : defaultDiameter;
@@ -27,15 +86,14 @@ export default function Sidebar() {
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log('Importing file:', file.name);
       try {
         const arrayBuffer = await file.arrayBuffer();
         const { geometry, headerBytes } = parseSTLWithAttributes(arrayBuffer);
         const modelId = `model-${Date.now()}`;
         useStore.getState().setModel(modelId, geometry, headerBytes);
       } catch (error) {
-        console.error("Failed to parse STL:", error);
-        alert("Hiba történt az STL beolvasása során.");
+        console.error("Import error:", error);
+        alert(t.errorImport);
       }
     }
   };
@@ -57,8 +115,8 @@ export default function Sidebar() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Export failed:", error);
-      alert("Hiba történt az exportálás során.");
+      console.error("Export error:", error);
+      alert(t.errorExport);
     } finally {
       setIsExporting(false);
     }
@@ -75,33 +133,55 @@ export default function Sidebar() {
       boxSizing: 'border-box',
       zIndex: 10
     }}>
-      <div className="sidebar-header" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-            Dental Occlusal Hole Tool
-          </h2>
-          <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-            CAD fúrás vizualizáció
-          </p>
+      <div className="sidebar-header" style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+              {t.title}
+            </h2>
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+              {t.subtitle}
+            </p>
+          </div>
+          <button 
+            onClick={toggleDarkMode}
+            style={{ 
+              background: 'none', border: 'none', color: 'var(--text-secondary)', 
+              cursor: 'pointer', padding: '8px', borderRadius: '50%'
+            }}
+          >
+            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
         </div>
-        <button 
-          onClick={toggleDarkMode}
-          style={{ 
-            background: 'none', border: 'none', color: 'var(--text-secondary)', 
-            cursor: 'pointer', padding: '8px', borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'background-color 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--card-bg)'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-        >
-          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
+
+        {/* Language Picker */}
+        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+          {['en', 'de', 'hu'].map(lang => (
+            <button 
+              key={lang}
+              onClick={() => setLanguage(lang)}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '11px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                color: language === lang ? 'var(--accent-color)' : 'var(--text-secondary)',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                backgroundColor: language === lang ? 'var(--card-active-bg)' : 'transparent',
+                textTransform: 'uppercase'
+              }}
+            >
+              {lang}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <button className="btn" onClick={handleImportClick} style={{ width: '100%' }}>
-          <Upload size={16} /> STL Importálása
+          <Upload size={16} /> {t.import}
         </button>
         <input 
           type="file" 
@@ -112,7 +192,7 @@ export default function Sidebar() {
         />
         
         <button className="btn" disabled={!activeModelId || isExporting} onClick={handleExportClick} style={{ width: '100%' }}>
-          <Download size={16} /> {isExporting ? 'Exportálás...' : 'Kész modell letöltése'}
+          <Download size={16} /> {isExporting ? t.exporting : t.export}
         </button>
       </div>
 
@@ -127,20 +207,19 @@ export default function Sidebar() {
               style={{ 
                 width: '100%',
                 backgroundColor: isEditing ? 'var(--text-secondary)' : 'var(--accent-color)',
-                opacity: isEditing ? 0.8 : 1
               }}
             >
               {isEditing ? (
-                <><MousePointerClick size={16} /> Kattintson a modellre</>
+                <><MousePointerClick size={16} /> {t.pierce}</>
               ) : (
-                <><Plus size={16} /> Új furat elhelyezése</>
+                <><Plus size={16} /> {t.addChannel}</>
               )}
             </button>
           </div>
 
           <div style={{ marginBottom: '24px' }}>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '8px', color: 'var(--text-secondary)' }}>
-              Átmérő: {currentDiameter.toFixed(1)} mm
+              {t.diameter}: {currentDiameter.toFixed(1)} mm
             </label>
             <input 
               type="range" 
@@ -162,7 +241,7 @@ export default function Sidebar() {
 
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             <h4 style={{ margin: '0 0 12px 0', fontSize: '13px', color: 'var(--text-primary)' }}>
-              Furatok listája ({activeModel.channels.length})
+              {t.holes} ({activeModel.channels.length})
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', paddingRight: '4px' }}>
               {activeModel.channels.map((ch, idx) => {
@@ -179,13 +258,12 @@ export default function Sidebar() {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease'
+                      cursor: 'pointer'
                     }}
                   >
                     <div>
                       <div style={{ fontWeight: '600', fontSize: '13px', color: isActive ? 'var(--accent-color)' : 'var(--text-primary)' }}>
-                        Furat #{idx + 1}
+                        {t.hole} #{idx + 1}
                       </div>
                       <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                         Ø {ch.diameter.toFixed(1)} mm
@@ -212,11 +290,11 @@ export default function Sidebar() {
           <div style={{ display: 'flex', gap: '8px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
             <button className="btn" style={{ flex: 1, backgroundColor: 'var(--border-color)', color: 'var(--text-primary)' }} 
                     onClick={undo} disabled={historyIndex <= 0}>
-              <Undo size={14} /> Vissza
+              <Undo size={14} /> {t.undo}
             </button>
             <button className="btn" style={{ flex: 1, backgroundColor: 'var(--border-color)', color: 'var(--text-primary)' }} 
                     onClick={redo} disabled={historyIndex >= history.length - 1}>
-              <Redo size={14} /> Előre
+              <Redo size={14} /> {t.redo}
             </button>
           </div>
         </>
@@ -224,10 +302,9 @@ export default function Sidebar() {
 
       {/* Footer / Disclaimer */}
       <div style={{ marginTop: 'auto', paddingTop: '24px', fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center' }}>
-        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>v1.0.1 Stable</div>
+        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{t.version}</div>
         <p style={{ margin: 0, lineHeight: '1.4' }}>
-          Fogászati vizualizációs segédeszköz.<br/>
-          <strong>Gyártás előtt mindig ellenőrizze a végleges STL modellt!</strong>
+          {t.disclaimer}
         </p>
       </div>
     </div>

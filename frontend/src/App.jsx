@@ -3,10 +3,25 @@ import Sidebar from './components/Sidebar';
 import Viewport3D from './components/Viewport3D';
 import useStore from './store/useStore';
 
+const emptyTranslations = {
+  en: {
+    title: 'No Model Loaded',
+    desc: 'Import an STL file to begin cutting channels.'
+  },
+  de: {
+    title: 'Kein Modell geladen',
+    desc: 'Importieren Sie eine STL-Datei, um Kanäle zu schneiden.'
+  },
+  hu: {
+    title: 'Nincs betöltött modell',
+    desc: 'Importáljon egy STL fájlt a fúrási csatornák elhelyezéséhez.'
+  }
+};
+
 function App() {
-  const { activeModelId, darkMode } = useStore();
+  const { activeModelId, darkMode, language } = useStore();
+  const t = emptyTranslations[language] || emptyTranslations.en;
   
-  // We use 'light' explicitly to override system dark mode preference
   return (
     <div className={`app-container ${darkMode ? 'dark' : 'light'}`}>
       <Sidebar />
@@ -20,8 +35,8 @@ function App() {
             textAlign: 'center',
             color: 'var(--text-secondary)'
           }}>
-            <h2 style={{ color: 'var(--text-primary)' }}>Nincs betöltött modell</h2>
-            <p>Importáljon egy STL fájlt a fúrási csatornák elhelyezéséhez.</p>
+            <h2 style={{ color: 'var(--text-primary)' }}>{t.title}</h2>
+            <p>{t.desc}</p>
           </div>
         )}
         {activeModelId && <Viewport3D />}

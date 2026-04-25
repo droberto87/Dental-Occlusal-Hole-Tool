@@ -14,6 +14,8 @@ const useStore = create((set, get) => ({
   defaultDiameter: 3.0,
   darkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
   toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
+  language: 'en',
+  setLanguage: (lang) => set({ language: lang }),
   
   history: [],
   historyIndex: -1,
