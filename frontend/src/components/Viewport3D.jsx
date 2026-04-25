@@ -456,10 +456,10 @@ function ModelViewer() {
 
   React.useEffect(() => {
     if (matRef.current) {
-      // Light grey in dark mode, darker grey in light mode for contrast
-      matRef.current.color.set(darkMode ? '#94a3b8' : '#cbd5e1');
+      // Clean neutral grey, independent of theme
+      matRef.current.color.set('#b0b0b0');
     }
-  }, [darkMode]);
+  }, []); // Only run once on mount or when material changes
 
   // Update cylinder uniforms every frame from live cache or store
   useFrame(() => {

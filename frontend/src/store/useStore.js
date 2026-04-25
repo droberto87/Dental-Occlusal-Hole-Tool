@@ -12,7 +12,7 @@ const useStore = create((set, get) => ({
   tempStartPoint: null,
   tempEndPoint: null,
   defaultDiameter: 3.0,
-  darkMode: false,
+  darkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
   toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
   
   history: [],

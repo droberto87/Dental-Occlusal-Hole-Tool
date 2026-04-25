@@ -1,42 +1,45 @@
 :root {
-  --bg-color: #f8fafc;
+  /* Harmonized Light Theme - Warm Off-white with Eggplant hints */
+  --bg-color: #fcfafc;
   --panel-bg: #ffffff;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --accent-color: #3b82f6;
-  --border-color: #e2e8f0;
-  --card-bg: #f8fafc;
-  --card-active-bg: #eff6ff;
-  --card-active-border: #3b82f6;
+  --text-primary: #2d1b2d; /* Dark eggplant text */
+  --text-secondary: #7b6a7b;
+  --accent-color: #a78baa; /* Pastel lavender button */
+  --border-color: #e8e2e8;
+  --card-bg: #fdfbfd;
+  --card-active-bg: #f3edf3;
+  --card-active-border: #a78baa;
   --input-bg: #ffffff;
 }
 
-@media (prefers-color-scheme: dark) {
-  .app-container:not(.dark-off) {
-    --bg-color: #0f172a;
-    --panel-bg: #1e293b;
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --accent-color: #60a5fa;
-    --border-color: #334155;
-    --card-bg: #0f172a;
-    --card-active-bg: #1e3a8a;
-    --card-active-border: #60a5fa;
-    --input-bg: #334155;
-  }
+/* Harmonized Dark Mode - Deep Eggplant Theme with Pastel Accents */
+.app-container.dark {
+  --bg-color: #120712;
+  --panel-bg: #1c0d1c;
+  --text-primary: #f1f5f9;
+  --text-secondary: #a78baa;
+  --accent-color: #8e738e; /* Muted pastel eggplant for buttons */
+  --border-color: #301a30;
+  --card-bg: #120712;
+  --card-active-bg: #2d162d;
+  --card-active-border: #8e738e;
+  --input-bg: #301a30;
 }
 
-.app-container.dark {
-  --bg-color: #0f172a;
-  --panel-bg: #1e293b;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --accent-color: #60a5fa;
-  --border-color: #334155;
-  --card-bg: #0f172a;
-  --card-active-bg: #1e3a8a;
-  --card-active-border: #60a5fa;
-  --input-bg: #334155;
+/* System dark mode support */
+@media (prefers-color-scheme: dark) {
+  .app-container:not(.light) {
+    --bg-color: #120712;
+    --panel-bg: #1c0d1c;
+    --text-primary: #f1f5f9;
+    --text-secondary: #a78baa;
+    --accent-color: #8e738e;
+    --border-color: #301a30;
+    --card-bg: #120712;
+    --card-active-bg: #2d162d;
+    --card-active-border: #8e738e;
+    --input-bg: #301a30;
+  }
 }
 
 body {
@@ -45,7 +48,6 @@ body {
   background-color: var(--bg-color);
   color: var(--text-primary);
   overflow: hidden;
-  transition: background-color 0.3s, color 0.3s;
 }
 
 .app-container {
@@ -54,7 +56,7 @@ body {
   height: 100vh;
   background-color: var(--bg-color);
   color: var(--text-primary);
-  transition: background-color 0.3s, color 0.3s;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s;
 }
 
 /* Premium Slider Styling */
@@ -85,13 +87,9 @@ input[type=range]::-webkit-slider-thumb {
   cursor: pointer;
   -webkit-appearance: none;
   margin-top: -6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
   border: 2px solid var(--panel-bg);
-  transition: transform 0.1s ease;
-}
-
-input[type=range]:active::-webkit-slider-thumb {
-  transform: scale(1.2);
+  transition: all 0.2s ease;
 }
 
 .btn {
@@ -101,7 +99,7 @@ input[type=range]:active::-webkit-slider-thumb {
   gap: 8px;
   padding: 10px 16px;
   background-color: var(--accent-color);
-  color: white;
+  color: white; 
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -110,16 +108,17 @@ input[type=range]:active::-webkit-slider-thumb {
   font-size: 14px;
 }
 
+/* Eggplant theme specific button text for better visibility */
+.app-container.dark .btn {
+  color: #f1f5f9;
+}
+
 .btn:hover:not(:disabled) {
   filter: brightness(1.1);
   transform: translateY(-1px);
 }
 
-.btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }

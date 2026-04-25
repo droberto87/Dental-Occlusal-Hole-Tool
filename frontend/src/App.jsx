@@ -6,8 +6,9 @@ import useStore from './store/useStore';
 function App() {
   const { activeModelId, darkMode } = useStore();
   
+  // We use 'light' explicitly to override system dark mode preference
   return (
-    <div className={`app-container ${darkMode ? 'dark' : ''}`}>
+    <div className={`app-container ${darkMode ? 'dark' : 'light'}`}>
       <Sidebar />
       <div className="viewport-container" style={{ flex: 1, position: 'relative' }}>
         {!activeModelId && (
