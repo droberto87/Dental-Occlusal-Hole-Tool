@@ -358,6 +358,8 @@ export default function Sidebar() {
         <p style={{ margin: 0, lineHeight: '1.4' }}>
           {t.disclaimer}
         </p>
+      </div>
+
       {/* Wiki Modal */}
       {isHelpOpen && (
         <div style={{
