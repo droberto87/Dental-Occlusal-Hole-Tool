@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import useStore from '../store/useStore';
-import { Upload, Download, Undo, Redo, Plus, MousePointerClick, Trash2 } from 'lucide-react';
+import { Upload, Download, Undo, Redo, Plus, MousePointerClick, Trash2, Sun, Moon } from 'lucide-react';
 import { parseSTLWithAttributes, exportSTLWithAttributes } from '../utils/stlParser';
 import { processCSG } from '../utils/csgProcessor';
 
@@ -10,7 +10,8 @@ export default function Sidebar() {
     defaultDiameter, setDefaultDiameter, 
     setIsEditing, placementStep, isEditing, 
     undo, redo, historyIndex, history,
-    updateChannel, removeChannel
+    updateChannel, removeChannel,
+    darkMode, toggleDarkMode
   } = useStore();
 
   const activeModel = models.find(m => m.id === activeModelId);
@@ -30,16 +31,11 @@ export default function Sidebar() {
       try {
         const arrayBuffer = await file.arrayBuffer();
         const { geometry, headerBytes } = parseSTLWithAttributes(arrayBuffer);
-        
-        // Generate a unique ID for the model
         const modelId = `model-${Date.now()}`;
-        
-        // Add to store
         useStore.getState().setModel(modelId, geometry, headerBytes);
-        
       } catch (error) {
         console.error("Failed to parse STL:", error);
-        alert("Failed to parse STL file.");
+        alert("Hiba történt az STL beolvasása során.");
       }
     }
   };
@@ -50,39 +46,62 @@ export default function Sidebar() {
 
     setIsExporting(true);
     try {
-      // 1. Process CSG
       const finalGeometry = await processCSG(activeModel.geometry, activeModel.channels);
-      
-      // 2. Export to STL
       const blob = exportSTLWithAttributes(finalGeometry, activeModel.originalStlData);
-      
-      // 3. Trigger Download
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `cut_model_${Date.now()}.stl`;
+      a.download = `dental_model_${Date.now()}.stl`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Export failed:", error);
-      alert("Failed to export model.");
+      alert("Hiba történt az exportálás során.");
     } finally {
       setIsExporting(false);
     }
   };
 
   return (
-    <div className="sidebar glass-panel">
-      <div className="sidebar-header">
-        <h1>Occulsa</h1>
-        <p>Hole Tool for CAM Models</p>
+    <div className="sidebar" style={{
+      width: '320px',
+      backgroundColor: 'var(--panel-bg)',
+      borderRight: '1px solid var(--border-color)',
+      display: 'flex',
+      flexDirection: 'column',
+      padding: '24px',
+      boxSizing: 'border-box',
+      zIndex: 10
+    }}>
+      <div className="sidebar-header" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+            Dental Occlusal Hole Tool
+          </h2>
+          <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+            CAD fúrás vizualizáció
+          </p>
+        </div>
+        <button 
+          onClick={toggleDarkMode}
+          style={{ 
+            background: 'none', border: 'none', color: 'var(--text-secondary)', 
+            cursor: 'pointer', padding: '8px', borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'background-color 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--card-bg)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        >
+          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
       </div>
 
-      <div className="control-group">
-        <button className="btn btn-primary" onClick={handleImportClick}>
-          <Upload size={16} /> Import STL
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <button className="btn" onClick={handleImportClick} style={{ width: '100%' }}>
+          <Upload size={16} /> STL Importálása
         </button>
         <input 
           type="file" 
@@ -92,31 +111,37 @@ export default function Sidebar() {
           onChange={handleFileChange}
         />
         
-        <button className="btn" disabled={!activeModelId || isExporting} onClick={handleExportClick}>
-          <Download size={16} /> {isExporting ? 'Exporting...' : 'Export STL'}
+        <button className="btn" disabled={!activeModelId || isExporting} onClick={handleExportClick} style={{ width: '100%' }}>
+          <Download size={16} /> {isExporting ? 'Exportálás...' : 'Kész modell letöltése'}
         </button>
       </div>
 
       {activeModelId && (
         <>
-          <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '16px 0' }} />
+          <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '24px 0' }} />
           
-          <div className="control-group">
+          <div style={{ marginBottom: '20px' }}>
             <button 
-              className={`btn ${isEditing ? '' : 'btn-primary'}`} 
+              className="btn" 
               onClick={() => setIsEditing(!isEditing)}
-              style={{ background: isEditing ? 'rgba(255,255,255,0.1)' : undefined }}
+              style={{ 
+                width: '100%',
+                backgroundColor: isEditing ? 'var(--text-secondary)' : 'var(--accent-color)',
+                opacity: isEditing ? 0.8 : 1
+              }}
             >
               {isEditing ? (
-                <><MousePointerClick size={16} /> Click on Model to Pierce</>
+                <><MousePointerClick size={16} /> Kattintson a modellre</>
               ) : (
-                <><Plus size={16} /> Add Channel</>
+                <><Plus size={16} /> Új furat elhelyezése</>
               )}
             </button>
           </div>
 
-          <div className="control-group">
-            <label>Diameter ({currentDiameter.toFixed(1)} mm){activeChannel ? ' — active channel' : ' — new channels'}</label>
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '8px', color: 'var(--text-secondary)' }}>
+              Átmérő: {currentDiameter.toFixed(1)} mm
+            </label>
             <input 
               type="range" 
               min="1.0" 
@@ -135,8 +160,10 @@ export default function Sidebar() {
             />
           </div>
 
-          <div className="control-group" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-            <h4 style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#475569' }}>Holes ({activeModel.channels.length})</h4>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <h4 style={{ margin: '0 0 12px 0', fontSize: '13px', color: 'var(--text-primary)' }}>
+              Furatok listája ({activeModel.channels.length})
+            </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', paddingRight: '4px' }}>
               {activeModel.channels.map((ch, idx) => {
                 const isActive = activeChannelId === ch.id;
@@ -145,22 +172,22 @@ export default function Sidebar() {
                     key={ch.id} 
                     onClick={() => useStore.setState({ activeChannelId: ch.id })}
                     style={{
-                      padding: '10px', 
-                      borderRadius: '8px', 
-                      border: `2px solid ${isActive ? '#3b82f6' : '#e2e8f0'}`,
-                      backgroundColor: isActive ? '#eff6ff' : '#f8fafc',
+                      padding: '12px', 
+                      borderRadius: '10px', 
+                      border: `2px solid ${isActive ? 'var(--card-active-border)' : 'var(--border-color)'}`,
+                      backgroundColor: isActive ? 'var(--card-active-bg)' : 'var(--card-bg)',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       cursor: 'pointer',
-                      transition: 'all 0.2s'
+                      transition: 'all 0.15s ease'
                     }}
                   >
                     <div>
-                      <div style={{ fontWeight: '600', fontSize: '13px', color: isActive ? '#1e40af' : '#334155' }}>
-                        Hole #{idx + 1}
+                      <div style={{ fontWeight: '600', fontSize: '13px', color: isActive ? 'var(--accent-color)' : 'var(--text-primary)' }}>
+                        Furat #{idx + 1}
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                         Ø {ch.diameter.toFixed(1)} mm
                       </div>
                     </div>
@@ -171,9 +198,8 @@ export default function Sidebar() {
                       }}
                       style={{ 
                         background: 'none', border: 'none', color: '#ef4444', 
-                        cursor: 'pointer', padding: '6px', borderRadius: '4px' 
+                        cursor: 'pointer', padding: '6px', opacity: 0.8
                       }}
-                      title="Delete hole"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -183,16 +209,27 @@ export default function Sidebar() {
             </div>
           </div>
 
-          <div className="flex-row" style={{ marginTop: 'auto', paddingTop: '12px' }}>
-            <button className="btn" style={{ flex: 1 }} onClick={undo} disabled={historyIndex <= 0}>
-              <Undo size={16} /> Undo
+          <div style={{ display: 'flex', gap: '8px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
+            <button className="btn" style={{ flex: 1, backgroundColor: 'var(--border-color)', color: 'var(--text-primary)' }} 
+                    onClick={undo} disabled={historyIndex <= 0}>
+              <Undo size={14} /> Vissza
             </button>
-            <button className="btn" style={{ flex: 1 }} onClick={redo} disabled={historyIndex >= history.length - 1}>
-              <Redo size={16} /> Redo
+            <button className="btn" style={{ flex: 1, backgroundColor: 'var(--border-color)', color: 'var(--text-primary)' }} 
+                    onClick={redo} disabled={historyIndex >= history.length - 1}>
+              <Redo size={14} /> Előre
             </button>
           </div>
         </>
       )}
+
+      {/* Footer / Disclaimer */}
+      <div style={{ marginTop: 'auto', paddingTop: '24px', fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center' }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>v1.0.1 Stable</div>
+        <p style={{ margin: 0, lineHeight: '1.4' }}>
+          Fogászati vizualizációs segédeszköz.<br/>
+          <strong>Gyártás előtt mindig ellenőrizze a végleges STL modellt!</strong>
+        </p>
+      </div>
     </div>
   );
 }
