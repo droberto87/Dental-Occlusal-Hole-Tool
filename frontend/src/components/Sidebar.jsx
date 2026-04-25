@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import useStore from '../store/useStore';
-import { Upload, Download, Undo, Redo, Plus, MousePointerClick, Trash2, Sun, Moon, Languages } from 'lucide-react';
+import { Upload, Download, Undo, Redo, Plus, MousePointerClick, Trash2, Sun, Moon, Languages, HelpCircle, X } from 'lucide-react';
 import { parseSTLWithAttributes, exportSTLWithAttributes } from '../utils/stlParser';
 import { processCSG } from '../utils/csgProcessor';
 
@@ -20,6 +20,8 @@ const translations = {
     redo: 'Redo',
     version: 'v1.0.3 Stable',
     disclaimer: 'Professional CAD Editor. Always verify final STL model before production!',
+    help: 'Help / Wiki',
+    close: 'Close',
     errorImport: 'Failed to read STL file.',
     errorExport: 'Failed to export model.'
   },
@@ -38,6 +40,8 @@ const translations = {
     redo: 'Wiederholen',
     version: 'v1.0.3 Stabil',
     disclaimer: 'Professioneller CAD-Editor. Vor der Produktion immer das finale STL-Modell prüfen!',
+    help: 'Hilfe / Wiki',
+    close: 'Schließen',
     errorImport: 'STL-Datei konnte nem gelesen werden.',
     errorExport: 'Export fehlgeschlagen.'
   },
@@ -56,9 +60,44 @@ const translations = {
     redo: 'Előre',
     version: 'v1.0.3 Stabil',
     disclaimer: 'Professzionális CAD szerkesztő szoftver. Gyártás előtt mindig ellenőrizze a végleges STL modellt!',
+    help: 'Súgó / Wiki',
+    close: 'Bezárás',
     errorImport: 'Hiba történt az STL beolvasása során.',
     errorExport: 'Hiba történt az exportálás során.'
   }
+};
+
+const wikiContent = {
+  en: `
+    <h3>1. Loading a Model</h3>
+    <p>Click <b>Import STL</b> to load your dental model.</p>
+    <h3>2. Placing Holes</h3>
+    <p>Click <b>Add Channel</b> or <b>double-click</b> on the model surface. The hole will pierce the model along the camera's view axis.</p>
+    <h3>3. Editing</h3>
+    <p>Drag the <b>markers</b> to move endpoints. Use the <b>mouse wheel</b> over a marker to change its diameter.</p>
+    <h3>4. Export</h3>
+    <p>Click <b>Export STL</b> to download the final cut model.</p>
+  `,
+  de: `
+    <h3>1. Modell laden</h3>
+    <p>Klicken Sie auf <b>STL Importieren</b>, um Ihr Modell zu laden.</p>
+    <h3>2. Löcher platzieren</h3>
+    <p>Klicken Sie auf <b>Kanal hinzufügen</b> oder machen Sie einen <b>Doppelklick</b> auf die Modelloberfläche.</p>
+    <h3>3. Bearbeiten</h3>
+    <p>Ziehen Sie die <b>Marker</b>, um sie zu verschieben. Nutzen Sie das <b>Mausrad</b> über einem Marker, um den Durchmesser zu ändern.</p>
+    <h3>4. Exportieren</h3>
+    <p>Klicken Sie auf <b>STL Exportieren</b>, um das fertige Modell herunterzuladen.</p>
+  `,
+  hu: `
+    <h3>1. Modell betöltése</h3>
+    <p>Kattintson az <b>STL Importálása</b> gombra.</p>
+    <h3>2. Furatok elhelyezése</h3>
+    <p>Használja az <b>Új furat elhelyezése</b> gombot vagy a <b>dupla kattintást</b> a modell felületén. A furat a kamera nézési iránya mentén jön létre.</p>
+    <h3>3. Szerkesztés</h3>
+    <p>A <b>marker gömbök</b> húzásával mozgathatja a végpontokat. Az <b>egérgörgővel</b> a marker felett állva módosíthatja az átmérőt.</p>
+    <h3>4. Exportálás</h3>
+    <p>Kattintson a <b>Kész modell letöltése</b> gombra a mentéshez.</p>
+  `
 };
 
 export default function Sidebar() {
@@ -78,6 +117,7 @@ export default function Sidebar() {
   const currentDiameter = activeChannel ? activeChannel.diameter : defaultDiameter;
   const fileInputRef = useRef(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -143,15 +183,27 @@ export default function Sidebar() {
               {t.subtitle}
             </p>
           </div>
-          <button 
-            onClick={toggleDarkMode}
-            style={{ 
-              background: 'none', border: 'none', color: 'var(--text-secondary)', 
-              cursor: 'pointer', padding: '8px', borderRadius: '50%'
-            }}
-          >
-            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <button 
+              onClick={() => setIsHelpOpen(true)}
+              style={{ 
+                background: 'none', border: 'none', color: 'var(--text-secondary)', 
+                cursor: 'pointer', padding: '8px', borderRadius: '50%'
+              }}
+              title={t.help}
+            >
+              <HelpCircle size={18} />
+            </button>
+            <button 
+              onClick={toggleDarkMode}
+              style={{ 
+                background: 'none', border: 'none', color: 'var(--text-secondary)', 
+                cursor: 'pointer', padding: '8px', borderRadius: '50%'
+              }}
+            >
+              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+          </div>
         </div>
 
         {/* Language Picker */}
@@ -306,7 +358,37 @@ export default function Sidebar() {
         <p style={{ margin: 0, lineHeight: '1.4' }}>
           {t.disclaimer}
         </p>
-      </div>
+      {/* Wiki Modal */}
+      {isHelpOpen && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+        }} onClick={() => setIsHelpOpen(false)}>
+          <div style={{
+            width: '450px', backgroundColor: 'var(--panel-bg)', borderRadius: '16px',
+            padding: '32px', position: 'relative', boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+            border: '1px solid var(--border-color)', color: 'var(--text-primary)'
+          }} onClick={e => e.stopPropagation()}>
+            <button 
+              onClick={() => setIsHelpOpen(false)}
+              style={{
+                position: 'absolute', top: '16px', right: '16px',
+                background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer'
+              }}
+            >
+              <X size={20} />
+            </button>
+            <h2 style={{ marginTop: 0, borderBottom: '2px solid var(--accent-color)', paddingBottom: '12px' }}>
+              {t.help}
+            </h2>
+            <div style={{ fontSize: '14px', lineHeight: '1.6' }} dangerouslySetInnerHTML={{ __html: wikiContent[language] || wikiContent.en }} />
+            <button className="btn" onClick={() => setIsHelpOpen(false)} style={{ marginTop: '24px', width: '100%' }}>
+              {t.close}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
