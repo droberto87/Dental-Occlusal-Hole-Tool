@@ -323,6 +323,8 @@ function ChannelVisualizer({ channel }) {
     },
     onWheel: (e) => {
       e.stopPropagation();
+      // Ensure zoom is disabled even if PointerOver wasn't triggered (e.g. immediately after creation)
+      if (_activeControls) _activeControls.enableZoom = false;
       useStore.setState({ activeChannelId: id });
       
       const delta = e.deltaY > 0 ? -0.2 : 0.2; // Increase step size slightly for better scroll feel
@@ -447,10 +449,17 @@ function ModelViewer() {
     models, activeModelId,
     placementStep, setPlacementStep,
     setTempStartPoint, setTempEndPoint, tempStartPoint, tempEndPoint,
-    addChannel, defaultDiameter, setIsEditing, isEditing
+    addChannel, defaultDiameter, setIsEditing, isEditing, darkMode
   } = useStore();
   const activeModel = models.find(m => m.id === activeModelId);
   const matRef = useRef(createChannelMaterial());
+
+  React.useEffect(() => {
+    if (matRef.current) {
+      // Light grey in dark mode, darker grey in light mode for contrast
+      matRef.current.color.set(darkMode ? '#94a3b8' : '#cbd5e1');
+    }
+  }, [darkMode]);
 
   // Update cylinder uniforms every frame from live cache or store
   useFrame(() => {

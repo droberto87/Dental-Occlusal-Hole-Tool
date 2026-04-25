@@ -52,6 +52,9 @@ body {
   display: flex;
   width: 100vw;
   height: 100vh;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  transition: background-color 0.3s, color 0.3s;
 }
 
 /* Premium Slider Styling */
