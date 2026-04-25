@@ -185,8 +185,17 @@ function SceneControls() {
 function CameraLight() {
   const { camera } = useThree();
   const lightRef = useRef();
-  useFrame(() => { if (lightRef.current) lightRef.current.position.copy(camera.position); });
-  return <directionalLight ref={lightRef} intensity={2.0} />;
+  useFrame(() => { 
+    if (lightRef.current) {
+      lightRef.current.position.copy(camera.position);
+      // Sync light target with controls target so it always shines where we look
+      if (_activeControls) {
+        lightRef.current.target.position.copy(_activeControls.target);
+        lightRef.current.target.updateMatrixWorld();
+      }
+    }
+  });
+  return <directionalLight ref={lightRef} intensity={2.2} />;
 }
 
 // ─── Channel Visualizer ──────────────────────────────────────────────────────
@@ -456,10 +465,10 @@ function ModelViewer() {
 
   React.useEffect(() => {
     if (matRef.current) {
-      // Light grey in light mode, medium grey in dark mode
-      matRef.current.color.set(darkMode ? '#888888' : '#eeeeee');
+      // Neutral bright grey for optimal visibility in both themes
+      matRef.current.color.set('#e0e0e0');
     }
-  }, [darkMode]);
+  }, []);
 
   // Update cylinder uniforms every frame from live cache or store
   useFrame(() => {

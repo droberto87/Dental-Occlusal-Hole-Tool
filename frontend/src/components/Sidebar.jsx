@@ -7,7 +7,7 @@ import { processCSG } from '../utils/csgProcessor';
 const translations = {
   en: {
     title: 'Dental Occlusal Hole Tool',
-    subtitle: 'CAD Hole Visualization',
+    subtitle: 'CAD Occlusal Hole Editor',
     import: 'Import STL',
     export: 'Export STL',
     exporting: 'Exporting...',
@@ -18,14 +18,14 @@ const translations = {
     hole: 'Hole',
     undo: 'Undo',
     redo: 'Redo',
-    version: 'v1.0.2 Stable',
-    disclaimer: 'Dental visualization tool. Always verify final STL model before production!',
+    version: 'v1.0.3 Stable',
+    disclaimer: 'Professional CAD Editor. Always verify final STL model before production!',
     errorImport: 'Failed to read STL file.',
     errorExport: 'Failed to export model.'
   },
   de: {
     title: 'Dental Okklusal-Loch-Tool',
-    subtitle: 'CAD-Loch-Visualisierung',
+    subtitle: 'CAD-Okklusal-Loch-Editor',
     import: 'STL Importieren',
     export: 'STL Exportieren',
     exporting: 'Exportiere...',
@@ -36,14 +36,14 @@ const translations = {
     hole: 'Loch',
     undo: 'Rückgängig',
     redo: 'Wiederholen',
-    version: 'v1.0.2 Stabil',
-    disclaimer: 'Dentales Visualisierungstool. Vor der Produktion immer das finale STL-Modell prüfen!',
+    version: 'v1.0.3 Stabil',
+    disclaimer: 'Professioneller CAD-Editor. Vor der Produktion immer das finale STL-Modell prüfen!',
     errorImport: 'STL-Datei konnte nem gelesen werden.',
     errorExport: 'Export fehlgeschlagen.'
   },
   hu: {
     title: 'Dental Occlusal Hole Tool',
-    subtitle: 'CAD fúrás vizualizáció',
+    subtitle: 'CAD Okkluzális Furatszerkesztő',
     import: 'STL Importálása',
     export: 'Kész modell letöltése',
     exporting: 'Exportálás...',
@@ -54,8 +54,8 @@ const translations = {
     hole: 'Furat',
     undo: 'Vissza',
     redo: 'Előre',
-    version: 'v1.0.2 Stabil',
-    disclaimer: 'Fogászati vizualizációs segédeszköz. Gyártás előtt mindig ellenőrizze a végleges STL modellt!',
+    version: 'v1.0.3 Stabil',
+    disclaimer: 'Professzionális CAD szerkesztő szoftver. Gyártás előtt mindig ellenőrizze a végleges STL modellt!',
     errorImport: 'Hiba történt az STL beolvasása során.',
     errorExport: 'Hiba történt az exportálás során.'
   }
