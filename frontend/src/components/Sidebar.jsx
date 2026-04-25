@@ -108,7 +108,8 @@ export default function Sidebar() {
     undo, redo, historyIndex, history,
     updateChannel, removeChannel,
     darkMode, toggleDarkMode,
-    language, setLanguage
+    language, setLanguage,
+    hasSeenWiki, setHasSeenWiki
   } = useStore();
 
   const t = translations[language] || translations.en;
@@ -117,7 +118,12 @@ export default function Sidebar() {
   const currentDiameter = activeChannel ? activeChannel.diameter : defaultDiameter;
   const fileInputRef = useRef(null);
   const [isExporting, setIsExporting] = useState(false);
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(!hasSeenWiki);
+
+  const closeHelp = () => {
+    setIsHelpOpen(false);
+    if (!hasSeenWiki) setHasSeenWiki();
+  };
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -366,14 +372,14 @@ export default function Sidebar() {
           position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
           backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
           display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
-        }} onClick={() => setIsHelpOpen(false)}>
+        }} onClick={closeHelp}>
           <div style={{
             width: '450px', backgroundColor: 'var(--panel-bg)', borderRadius: '16px',
             padding: '32px', position: 'relative', boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
             border: '1px solid var(--border-color)', color: 'var(--text-primary)'
           }} onClick={e => e.stopPropagation()}>
             <button 
-              onClick={() => setIsHelpOpen(false)}
+              onClick={closeHelp}
               style={{
                 position: 'absolute', top: '16px', right: '16px',
                 background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer'
@@ -385,7 +391,7 @@ export default function Sidebar() {
               {t.help}
             </h2>
             <div style={{ fontSize: '14px', lineHeight: '1.6' }} dangerouslySetInnerHTML={{ __html: wikiContent[language] || wikiContent.en }} />
-            <button className="btn" onClick={() => setIsHelpOpen(false)} style={{ marginTop: '24px', width: '100%' }}>
+            <button className="btn" onClick={closeHelp} style={{ marginTop: '24px', width: '100%' }}>
               {t.close}
             </button>
           </div>

@@ -1,5 +1,21 @@
 import { create } from 'zustand';
 import * as THREE from 'three';
+import { getCookie, setCookie } from '../utils/cookies';
+
+const getInitialLanguage = () => {
+  const saved = getCookie('app_lang');
+  if (saved && ['en', 'de', 'hu'].includes(saved)) return saved;
+  
+  const browserLang = navigator.language?.split('-')[0];
+  if (['en', 'de', 'hu'].includes(browserLang)) return browserLang;
+  return 'en';
+};
+
+const getInitialDarkMode = () => {
+  const saved = getCookie('app_dark_mode');
+  if (saved !== '') return saved === 'true';
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+};
 
 const useStore = create((set, get) => ({
   models: [],
@@ -12,10 +28,25 @@ const useStore = create((set, get) => ({
   tempStartPoint: null,
   tempEndPoint: null,
   defaultDiameter: 3.0,
-  darkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
-  toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
-  language: 'en',
-  setLanguage: (lang) => set({ language: lang }),
+  
+  darkMode: getInitialDarkMode(),
+  toggleDarkMode: () => set((state) => {
+    const newVal = !state.darkMode;
+    setCookie('app_dark_mode', newVal.toString());
+    return { darkMode: newVal };
+  }),
+  
+  language: getInitialLanguage(),
+  setLanguage: (lang) => {
+    setCookie('app_lang', lang);
+    set({ language: lang });
+  },
+
+  hasSeenWiki: getCookie('app_has_seen_wiki') === 'true',
+  setHasSeenWiki: () => {
+    setCookie('app_has_seen_wiki', 'true');
+    set({ hasSeenWiki: true });
+  },
   
   history: [],
   historyIndex: -1,
