@@ -212,14 +212,20 @@ function ChannelVisualizer({ channel }) {
   const startRef = useRef(startPoint.clone());
   const endRef   = useRef(endPoint.clone());
   const diamRef  = useRef(diameter);
+  const initialStart = useRef(new THREE.Vector3());
+  const initialEnd = useRef(new THREE.Vector3());
+  const initialHit = useRef(new THREE.Vector3());
+  const isPanning = useRef(false);
   const dirty    = useRef(true);
   const isDragStart = useRef(false);
   const isDragEnd   = useRef(false);
 
   // Sync from props when not dragging
   useEffect(() => {
-    if (!isDragStart.current) startRef.current.copy(startPoint);
-    if (!isDragEnd.current)   endRef.current.copy(endPoint);
+    if (!isDragStart.current && !isDragEnd.current) {
+      startRef.current.copy(startPoint);
+      endRef.current.copy(endPoint);
+    }
     diamRef.current = diameter;
     dirty.current = true;
   }, [startPoint, endPoint, diameter]);
@@ -280,45 +286,57 @@ function ChannelVisualizer({ channel }) {
     if (_activeControls) _activeControls.enabled = !val;
   };
 
-  const getHit = (e) => {
-    if (!bvhMeshRef.current) return null;
-    const rect = gl.domElement.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width)  * 2 - 1;
-    const y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
-    _rc.setFromCamera(new THREE.Vector2(x, y), camera);
-    const hits = _rc.intersectObject(bvhMeshRef.current);
-    return hits.length > 0 ? hits[0].point : null;
-  };
-
   const mkDrag = (type) => ({
     onPointerDown: (e) => {
       e.stopPropagation();
+      gl.domElement.setPointerCapture(e.pointerId);
       setSuspend(true);
       useStore.setState({ activeChannelId: id });
+      
+      // Store initial state for delta calculations
+      initialStart.current.copy(startRef.current);
+      initialEnd.current.copy(endRef.current);
+      initialHit.current.copy(e.point);
+      isPanning.current = e.ctrlKey || e.metaKey;
+
       if (type === 'start') isDragStart.current = true;
-      else                  isDragEnd.current   = true;
-      gl.domElement.setPointerCapture(e.pointerId);
+      else                  isDragEnd.current = true;
     },
     onPointerMove: (e) => {
-      e.stopPropagation();
-      const active = type === 'start' ? isDragStart.current : isDragEnd.current;
-      if (!active) return;
-      const pt = getHit(e);
-      if (pt) {
-        if (type === 'start') startRef.current.copy(pt);
-        else                  endRef.current.copy(pt);
+      if (isDragStart.current || isDragEnd.current) {
+        e.stopPropagation();
+        const pt = e.point;
+
+        if (isPanning.current) {
+          // Panning mode: move both points by the same delta
+          const delta = new THREE.Vector3().subVectors(pt, initialHit.current);
+          startRef.current.copy(initialStart.current).add(delta);
+          endRef.current.copy(initialEnd.current).add(delta);
+        } else {
+          // Single point drag mode
+          if (isDragStart.current) startRef.current.copy(pt);
+          else                    endRef.current.copy(pt);
+        }
         dirty.current = true;
       }
     },
     onPointerUp: (e) => {
       e.stopPropagation();
-      if (type === 'start') {
-        updateChannel(activeModelId, id, { startPoint: startRef.current.clone() });
-        isDragStart.current = false;
+      if (isPanning.current) {
+        updateChannel(activeModelId, id, { 
+          startPoint: startRef.current.clone(),
+          endPoint: endRef.current.clone()
+        });
       } else {
-        updateChannel(activeModelId, id, { endPoint: endRef.current.clone() });
-        isDragEnd.current = false;
+        if (isDragStart.current) {
+          updateChannel(activeModelId, id, { startPoint: startRef.current.clone() });
+        } else {
+          updateChannel(activeModelId, id, { endPoint: endRef.current.clone() });
+        }
       }
+      isDragStart.current = false;
+      isDragEnd.current = false;
+      isPanning.current = false;
       setSuspend(false);
       gl.domElement.releasePointerCapture(e.pointerId);
     },
