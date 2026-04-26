@@ -28,6 +28,8 @@ const useStore = create((set, get) => ({
   tempStartPoint: null,
   tempEndPoint: null,
   defaultDiameter: 3.0,
+  isSectionView: false,
+  sectionPlaneAngle: 0,
   
   darkMode: getInitialDarkMode(),
   toggleDarkMode: () => set((state) => {
@@ -73,8 +75,8 @@ const useStore = create((set, get) => ({
   },
 
   // This was renamed, fixing it back to setModel to match Sidebar.jsx
-  setModel: (id, geometry, originalStlData) => {
-    const newModel = { id, geometry, originalStlData, channels: [] };
+  setModel: (id, geometry, originalStlData, name = 'model') => {
+    const newModel = { id, geometry, originalStlData, name, channels: [] };
     set((state) => ({ 
       models: [...state.models, newModel],
       activeModelId: id,
@@ -194,6 +196,12 @@ const useStore = create((set, get) => ({
     tempEndPoint: val ? null : get().tempEndPoint,
   }),
   setDefaultDiameter: (d) => set({ defaultDiameter: d }),
+
+  toggleSectionView: () => set((state) => {
+    if (!state.activeChannelId) return state; // no-op without active channel
+    return { isSectionView: !state.isSectionView, sectionPlaneAngle: 0 };
+  }),
+  setSectionPlaneAngle: (angle) => set({ sectionPlaneAngle: angle }),
 }));
 
 export default useStore;

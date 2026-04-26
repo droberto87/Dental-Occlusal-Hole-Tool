@@ -1,6 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import useStore from '../store/useStore';
-import { Upload, Download, Undo, Redo, Plus, MousePointerClick, Trash2, Sun, Moon, Languages, HelpCircle, X } from 'lucide-react';
+import { Upload, Download, Undo, Redo, Plus, MousePointerClick, Trash2, Sun, Moon, Languages, HelpCircle, X, Scissors, RotateCcw, Hash, Grid } from 'lucide-react';
 import { parseSTLWithAttributes, exportSTLWithAttributes } from '../utils/stlParser';
 import { processCSG } from '../utils/csgProcessor';
 
@@ -18,12 +18,15 @@ const translations = {
     hole: 'Hole',
     undo: 'Undo',
     redo: 'Redo',
-    version: 'v1.0.3 Stable',
+    version: 'v1.1.0 Stable',
     disclaimer: 'Professional CAD Editor. Always verify final STL model before production!',
     help: 'Help / Wiki',
     close: 'Close',
     errorImport: 'Failed to read STL file.',
-    errorExport: 'Failed to export model.'
+    errorExport: 'Failed to export model.',
+    sectionView: 'Section View',
+    sectionAngle: 'Rotation',
+    sectionHint: 'Shift+drag to rotate plane'
   },
   de: {
     title: 'Dental Okklusal-Loch-Tool',
@@ -38,12 +41,15 @@ const translations = {
     hole: 'Loch',
     undo: 'Rückgängig',
     redo: 'Wiederholen',
-    version: 'v1.0.3 Stabil',
+    version: 'v1.1.0 Stabil',
     disclaimer: 'Professioneller CAD-Editor. Vor der Produktion immer das finale STL-Modell prüfen!',
     help: 'Hilfe / Wiki',
     close: 'Schließen',
     errorImport: 'STL-Datei konnte nem gelesen werden.',
-    errorExport: 'Export fehlgeschlagen.'
+    errorExport: 'Export fehlgeschlagen.',
+    sectionView: 'Schnittansicht',
+    sectionAngle: 'Rotation',
+    sectionHint: 'Shift+Ziehen zum Drehen'
   },
   hu: {
     title: 'Dental Occlusal Hole Tool',
@@ -58,12 +64,15 @@ const translations = {
     hole: 'Furat',
     undo: 'Vissza',
     redo: 'Előre',
-    version: 'v1.0.3 Stabil',
+    version: 'v1.1.0 Stabil',
     disclaimer: 'Professzionális CAD szerkesztő szoftver. Gyártás előtt mindig ellenőrizze a végleges STL modellt!',
     help: 'Súgó / Wiki',
     close: 'Bezárás',
     errorImport: 'Hiba történt az STL beolvasása során.',
-    errorExport: 'Hiba történt az exportálás során.'
+    errorExport: 'Hiba történt az exportálás során.',
+    sectionView: 'Metszeti nézet',
+    sectionAngle: 'Forgatás',
+    sectionHint: 'Shift+húzás a sík forgatásához'
   }
 };
 
@@ -72,31 +81,31 @@ const wikiContent = {
     <h3>1. Loading a Model</h3>
     <p>Click <b>Import STL</b> to load your dental model.</p>
     <h3>2. Placing Holes</h3>
-    <p>Click <b>Add Channel</b> or <b>double-click</b> on the model surface. The hole will pierce the model along the camera's view axis.</p>
-    <h3>3. Editing</h3>
-    <p>Drag the <b>markers</b> to move endpoints. Hold <b>Ctrl / Cmd</b> while dragging to move the entire hole at once. Use the <b>mouse wheel</b> over a marker to change its diameter.</p>
-    <h3>4. Export</h3>
-    <p>Click <b>Export STL</b> to download the final cut model.</p>
+    <p>Click <b>Add Channel</b> or <b>double-click</b> on the model. The cut starts 5mm behind the first point and goes <b>infinitely</b> towards the second point (ideal for occlusal openings).</p>
+    <h3>3. Section View & Navigation</h3>
+    <p>Press <b>'S'</b> to enter Section View. Use <b>Ctrl + Mouse Wheel</b> to rotate the plane; the camera will follow to keep a face-on view.</p>
+    <h3>4. Advanced Editing</h3>
+    <p>Drag the <b>yellow ring</b> in section view to <b>pan</b> the hole within the plane. Use <b>Mouse Wheel</b> over a marker to change its diameter. Hold <b>Ctrl</b> while dragging a marker to move the entire hole.</p>
   `,
   de: `
     <h3>1. Modell laden</h3>
-    <p>Klicken Sie auf <b>STL Importieren</b>, um Ihr Modell zu laden.</p>
+    <p>Klicken Sie auf <b>STL Importieren</b>.</p>
     <h3>2. Löcher platzieren</h3>
-    <p>Klicken Sie auf <b>Kanal hinzufügen</b> oder machen Sie einen <b>Doppelklick</b> auf die Modelloberfläche.</p>
-    <h3>3. Bearbeiten</h3>
-    <p>Ziehen Sie die <b>Marker</b>, um sie zu verschieben. Halten Sie <b>Strg / Cmd</b> gedrückt, um das gesamte Loch zu verschieben. Nutzen Sie das <b>Mausrad</b> über einem Marker, um den Durchmesser zu ändern.</p>
-    <h3>4. Exportieren</h3>
-    <p>Klicken Sie auf <b>STL Exportieren</b>, um das fertige Modell herunterzuladen.</p>
+    <p>Doppelklicken Sie auf die Oberfläche. Der Schnitt beginnt 5 mm hinter dem Startpunkt und verläuft <b>unendlich</b> in Richtung des Endpunkts.</p>
+    <h3>3. Schnittansicht</h3>
+    <p>Drücken Sie <b>'S'</b> für die Schnittansicht. Nutzen Sie <b>Strg + Mausrad</b>, um die Ebene zu drehen; die Kamera folgt automatisch.</p>
+    <h3>4. Bearbeitung</h3>
+    <p>Ziehen Sie den <b>gelben Ring</b>, um das Loch in der Ebene zu verschieben. Halten Sie <b>Strg</b> beim Ziehen eines Markers, um den gesamten Kanal zu verschieben.</p>
   `,
   hu: `
     <h3>1. Modell betöltése</h3>
     <p>Kattintson az <b>STL Importálása</b> gombra.</p>
     <h3>2. Furatok elhelyezése</h3>
-    <p>Használja az <b>Új furat elhelyezése</b> gombot vagy a <b>dupla kattintást</b> a modell felületén. A furat a kamera nézési iránya mentén jön létre.</p>
-    <h3>3. Szerkesztés</h3>
-    <p>A <b>marker gömbök</b> húzásával mozgathatja a végpontokat. Tartsa nyomva a <b>Ctrl / Cmd</b> billentyűt a teljes furat eltolásához. Az <b>egérgörgővel</b> a marker felett állva módosíthatja az átmérőt.</p>
-    <h3>4. Exportálás</h3>
-    <p>Kattintson a <b>Kész modell letöltése</b> gombra a mentéshez.</p>
+    <p>Használja az <b>Új furat</b> gombot vagy a <b>dupla kattintást</b>. A vágás a kezdőpont mögött 5mm-rel indul és <b>végtelenítve</b> halad a végpont felé (ideális okkluzális nyitáshoz).</p>
+    <h3>3. Metszeti nézet (S billentyű)</h3>
+    <p>Nyomja meg az <b>'S'</b> gombot a belépéshez. A <b>Ctrl + Egérgörgő</b> kombinációval forgathatja a metszeti síkot, a kamera automatikusan követi a vágást.</p>
+    <h3>4. Speciális szerkesztés</h3>
+    <p>Metszeti nézetben a <b>sárga gyűrű</b> húzásával eltolhatja (pan) a furatot a síkban. A <b>Ctrl + Húzás</b> a teljes furatot mozgatja, a <b>Görgő</b> a marker felett az átmérőt módosítja.</p>
   `
 };
 
@@ -109,7 +118,8 @@ export default function Sidebar() {
     updateChannel, removeChannel,
     darkMode, toggleDarkMode,
     language, setLanguage,
-    hasSeenWiki, setHasSeenWiki
+    hasSeenWiki, setHasSeenWiki,
+    isSectionView, toggleSectionView, sectionPlaneAngle, setSectionPlaneAngle,
   } = useStore();
 
   const t = translations[language] || translations.en;
@@ -119,6 +129,19 @@ export default function Sidebar() {
   const fileInputRef = useRef(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(!hasSeenWiki);
+
+  // S key shortcut for section view
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 's' || e.key === 'S') {
+        // Don't fire when typing in an input
+        if (document.activeElement.tagName === 'INPUT') return;
+        toggleSectionView();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [toggleSectionView]);
 
   const closeHelp = () => {
     setIsHelpOpen(false);
@@ -136,7 +159,7 @@ export default function Sidebar() {
         const arrayBuffer = await file.arrayBuffer();
         const { geometry, headerBytes } = parseSTLWithAttributes(arrayBuffer);
         const modelId = `model-${Date.now()}`;
-        useStore.getState().setModel(modelId, geometry, headerBytes);
+        useStore.getState().setModel(modelId, geometry, arrayBuffer, file.name);
       } catch (error) {
         console.error("Import error:", error);
         alert(t.errorImport);
@@ -155,7 +178,9 @@ export default function Sidebar() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `dental_model_${Date.now()}.stl`;
+      const baseName = activeModel.name ? activeModel.name.replace(/\.[^/.]+$/, "") : "dental_model";
+      const timestamp = new Date().toLocaleTimeString('hu-HU', { hour12: false }).replace(/:/g, '');
+      a.download = `${baseName}_CUT_${timestamp}.stl`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -274,6 +299,48 @@ export default function Sidebar() {
               )}
             </button>
           </div>
+
+          {/* Section View */}
+          <div style={{ marginBottom: '8px' }}>
+            <button
+              id="btn-section-view"
+              className="btn"
+              disabled={!activeChannelId}
+              onClick={toggleSectionView}
+              title="S"
+              style={{
+                width: '100%',
+                backgroundColor: isSectionView ? '#fbbf24' : 'var(--border-color)',
+                color: isSectionView ? '#1e1e1e' : 'var(--text-primary)',
+                opacity: activeChannelId ? 1 : 0.4,
+              }}
+            >
+              <Scissors size={16} />
+              {t.sectionView}
+            </button>
+          </div>
+
+          {/* Section angle slider */}
+          {isSectionView && (
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '8px', color: 'var(--text-secondary)' }}>
+                {t.sectionAngle}: {Math.round((sectionPlaneAngle * 180) / Math.PI)}°
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="360"
+                step="1"
+                value={Math.round((sectionPlaneAngle * 180) / Math.PI)}
+                onChange={(e) => setSectionPlaneAngle((parseFloat(e.target.value) * Math.PI) / 180)}
+                style={{ width: '100%' }}
+              />
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', textAlign: 'center' }}>
+                {t.sectionHint}
+              </div>
+            </div>
+          )}
+
 
           <div style={{ marginBottom: '24px' }}>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '8px', color: 'var(--text-secondary)' }}>
