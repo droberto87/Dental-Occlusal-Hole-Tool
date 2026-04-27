@@ -49,6 +49,18 @@ const useStore = create((set, get) => ({
     setCookie('app_has_seen_wiki', 'true');
     set({ hasSeenWiki: true });
   },
+
+  showConfirmClear: getCookie('app_show_confirm_clear') !== 'false',
+  showConfirmReset: getCookie('app_show_confirm_reset') !== 'false',
+  
+  setShowConfirmClear: (val) => {
+    setCookie('app_show_confirm_clear', val.toString());
+    set({ showConfirmClear: val });
+  },
+  setShowConfirmReset: (val) => {
+    setCookie('app_show_confirm_reset', val.toString());
+    set({ showConfirmReset: val });
+  },
   
   history: [],
   historyIndex: -1,
@@ -142,6 +154,33 @@ const useStore = create((set, get) => ({
     get()._saveHistory();
   },
 
+  clearChannels: () => {
+    const { activeModelId } = get();
+    if (!activeModelId) return;
+    set((state) => ({
+      activeChannelId: null,
+      models: state.models.map(m => 
+        m.id === activeModelId ? { ...m, channels: [] } : m
+      )
+    }));
+    get()._saveHistory();
+  },
+
+  resetApp: () => {
+    set({
+      models: [],
+      activeModelId: null,
+      activeChannelId: null,
+      history: [],
+      historyIndex: -1,
+      isEditing: false,
+      isSectionView: false,
+      placementStep: 0,
+      tempStartPoint: null,
+      tempEndPoint: null
+    });
+  },
+
   undo: () => {
     const { history, historyIndex } = get();
     if (historyIndex > 0) {
@@ -149,7 +188,7 @@ const useStore = create((set, get) => ({
       const snap = history[prevIndex];
       set((state) => ({
         historyIndex: prevIndex,
-        models: state.models.map((m, i) => {
+        models: state.models.map((m) => {
           const snapModel = snap.find(sm => sm.id === m.id);
           return {
             ...m,
@@ -171,7 +210,7 @@ const useStore = create((set, get) => ({
       const snap = history[nextIndex];
       set((state) => ({
         historyIndex: nextIndex,
-        models: state.models.map((m, i) => {
+        models: state.models.map((m) => {
           const snapModel = snap.find(sm => sm.id === m.id);
           return {
             ...m,

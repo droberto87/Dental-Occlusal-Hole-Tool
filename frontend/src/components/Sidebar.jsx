@@ -1,113 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react';
 import useStore from '../store/useStore';
-import { Upload, Download, Undo, Redo, Plus, MousePointerClick, Trash2, Sun, Moon, Languages, HelpCircle, X, Scissors, RotateCcw, Hash, Grid } from 'lucide-react';
+import { Upload, Download, Undo, Redo, Plus, MousePointerClick, Trash2, Sun, Moon, Languages, HelpCircle, X, Scissors, RotateCcw, Eraser, AlertTriangle } from 'lucide-react';
 import { parseSTLWithAttributes, exportSTLWithAttributes } from '../utils/stlParser';
 import { processCSG } from '../utils/csgProcessor';
-
-const translations = {
-  en: {
-    title: 'Dental Occlusal Hole Tool',
-    subtitle: 'CAD Occlusal Hole Editor',
-    import: 'Import STL',
-    export: 'Export STL',
-    exporting: 'Exporting...',
-    pierce: 'Click on Model to Pierce',
-    addChannel: 'Add Channel',
-    diameter: 'Diameter',
-    holes: 'Holes List',
-    hole: 'Hole',
-    undo: 'Undo',
-    redo: 'Redo',
-    version: 'v1.1.0 Stable',
-    disclaimer: 'Professional CAD Editor. Always verify final STL model before production!',
-    help: 'Help / Wiki',
-    close: 'Close',
-    errorImport: 'Failed to read STL file.',
-    errorExport: 'Failed to export model.',
-    sectionView: 'Section View',
-    sectionAngle: 'Rotation',
-    sectionHint: 'Shift+drag to rotate plane'
-  },
-  de: {
-    title: 'Dental Okklusal-Loch-Tool',
-    subtitle: 'CAD-Okklusal-Loch-Editor',
-    import: 'STL Importieren',
-    export: 'STL Exportieren',
-    exporting: 'Exportiere...',
-    pierce: 'Klicken Sie zum Durchstechen',
-    addChannel: 'Kanal hinzufügen',
-    diameter: 'Durchmesser',
-    holes: 'Loch-Liste',
-    hole: 'Loch',
-    undo: 'Rückgängig',
-    redo: 'Wiederholen',
-    version: 'v1.1.0 Stabil',
-    disclaimer: 'Professioneller CAD-Editor. Vor der Produktion immer das finale STL-Modell prüfen!',
-    help: 'Hilfe / Wiki',
-    close: 'Schließen',
-    errorImport: 'STL-Datei konnte nem gelesen werden.',
-    errorExport: 'Export fehlgeschlagen.',
-    sectionView: 'Schnittansicht',
-    sectionAngle: 'Rotation',
-    sectionHint: 'Shift+Ziehen zum Drehen'
-  },
-  hu: {
-    title: 'Dental Occlusal Hole Tool',
-    subtitle: 'CAD Okkluzális Furatszerkesztő',
-    import: 'STL Importálása',
-    export: 'Kész modell letöltése',
-    exporting: 'Exportálás...',
-    pierce: 'Kattintson a modellre',
-    addChannel: 'Új furat elhelyezése',
-    diameter: 'Átmérő',
-    holes: 'Furatok listája',
-    hole: 'Furat',
-    undo: 'Vissza',
-    redo: 'Előre',
-    version: 'v1.1.0 Stabil',
-    disclaimer: 'Professzionális CAD szerkesztő szoftver. Gyártás előtt mindig ellenőrizze a végleges STL modellt!',
-    help: 'Súgó / Wiki',
-    close: 'Bezárás',
-    errorImport: 'Hiba történt az STL beolvasása során.',
-    errorExport: 'Hiba történt az exportálás során.',
-    sectionView: 'Metszeti nézet',
-    sectionAngle: 'Forgatás',
-    sectionHint: 'Shift+húzás a sík forgatásához'
-  }
-};
-
-const wikiContent = {
-  en: `
-    <h3>1. Loading a Model</h3>
-    <p>Click <b>Import STL</b> to load your dental model.</p>
-    <h3>2. Placing Holes</h3>
-    <p>Click <b>Add Channel</b> or <b>double-click</b> on the model. The cut starts 5mm behind the first point and goes <b>infinitely</b> towards the second point (ideal for occlusal openings).</p>
-    <h3>3. Section View & Navigation</h3>
-    <p>Press <b>'S'</b> to enter Section View. Use <b>Ctrl + Mouse Wheel</b> to rotate the plane; the camera will follow to keep a face-on view.</p>
-    <h3>4. Advanced Editing</h3>
-    <p>Drag the <b>yellow ring</b> in section view to <b>pan</b> the hole within the plane. Use <b>Mouse Wheel</b> over a marker to change its diameter. Hold <b>Ctrl</b> while dragging a marker to move the entire hole.</p>
-  `,
-  de: `
-    <h3>1. Modell laden</h3>
-    <p>Klicken Sie auf <b>STL Importieren</b>.</p>
-    <h3>2. Löcher platzieren</h3>
-    <p>Doppelklicken Sie auf die Oberfläche. Der Schnitt beginnt 5 mm hinter dem Startpunkt und verläuft <b>unendlich</b> in Richtung des Endpunkts.</p>
-    <h3>3. Schnittansicht</h3>
-    <p>Drücken Sie <b>'S'</b> für die Schnittansicht. Nutzen Sie <b>Strg + Mausrad</b>, um die Ebene zu drehen; die Kamera folgt automatisch.</p>
-    <h3>4. Bearbeitung</h3>
-    <p>Ziehen Sie den <b>gelben Ring</b>, um das Loch in der Ebene zu verschieben. Halten Sie <b>Strg</b> beim Ziehen eines Markers, um den gesamten Kanal zu verschieben.</p>
-  `,
-  hu: `
-    <h3>1. Modell betöltése</h3>
-    <p>Kattintson az <b>STL Importálása</b> gombra.</p>
-    <h3>2. Furatok elhelyezése</h3>
-    <p>Használja az <b>Új furat</b> gombot vagy a <b>dupla kattintást</b>. A vágás a kezdőpont mögött 5mm-rel indul és <b>végtelenítve</b> halad a végpont felé (ideális okkluzális nyitáshoz).</p>
-    <h3>3. Metszeti nézet (S billentyű)</h3>
-    <p>Nyomja meg az <b>'S'</b> gombot a belépéshez. A <b>Ctrl + Egérgörgő</b> kombinációval forgathatja a metszeti síkot, a kamera automatikusan követi a vágást.</p>
-    <h3>4. Speciális szerkesztés</h3>
-    <p>Metszeti nézetben a <b>sárga gyűrű</b> húzásával eltolhatja (pan) a furatot a síkban. A <b>Ctrl + Húzás</b> a teljes furatot mozgatja, a <b>Görgő</b> a marker felett az átmérőt módosítja.</p>
-  `
-};
+import { translations, wikiContent } from '../locales/translations';
+import './Sidebar.css';
 
 export default function Sidebar() {
   const { 
@@ -120,6 +17,8 @@ export default function Sidebar() {
     language, setLanguage,
     hasSeenWiki, setHasSeenWiki,
     isSectionView, toggleSectionView, sectionPlaneAngle, setSectionPlaneAngle,
+    clearChannels, resetApp,
+    showConfirmClear, showConfirmReset, setShowConfirmClear, setShowConfirmReset
   } = useStore();
 
   const t = translations[language] || translations.en;
@@ -127,14 +26,16 @@ export default function Sidebar() {
   const activeChannel = activeModel?.channels?.find(c => c.id === activeChannelId);
   const currentDiameter = activeChannel ? activeChannel.diameter : defaultDiameter;
   const fileInputRef = useRef(null);
+  const wheelTimeoutRef = useRef(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(!hasSeenWiki);
+  const [confirmModal, setConfirmModal] = useState(null); // 'clear' | 'reset' | null
+  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   // S key shortcut for section view
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === 's' || e.key === 'S') {
-        // Don't fire when typing in an input
         if (document.activeElement.tagName === 'INPUT') return;
         toggleSectionView();
       }
@@ -157,12 +58,14 @@ export default function Sidebar() {
     if (file) {
       try {
         const arrayBuffer = await file.arrayBuffer();
-        const { geometry, headerBytes } = parseSTLWithAttributes(arrayBuffer);
+        const { geometry } = parseSTLWithAttributes(arrayBuffer);
         const modelId = `model-${Date.now()}`;
         useStore.getState().setModel(modelId, geometry, arrayBuffer, file.name);
       } catch (error) {
         console.error("Import error:", error);
         alert(t.errorImport);
+      } finally {
+        e.target.value = '';
       }
     }
   };
@@ -175,16 +78,24 @@ export default function Sidebar() {
     try {
       const finalGeometry = await processCSG(activeModel.geometry, activeModel.channels);
       const blob = exportSTLWithAttributes(finalGeometry, activeModel.originalStlData);
-      const url = URL.createObjectURL(blob);
+      const baseName = activeModel.name ? activeModel.name.replace(/\.[^/.]+$/, "").replace(/\s+/g, "_") : "dental_model";
+      const timestamp = new Date().toLocaleTimeString('hu-HU', { hour12: false }).replace(/:/g, '');
+      const fileName = `${baseName}_CUT_${timestamp}.stl`;
+      
+      const file = new File([blob], fileName, { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(file);
+      
       const a = document.createElement('a');
       a.href = url;
-      const baseName = activeModel.name ? activeModel.name.replace(/\.[^/.]+$/, "") : "dental_model";
-      const timestamp = new Date().toLocaleTimeString('hu-HU', { hour12: false }).replace(/:/g, '');
-      a.download = `${baseName}_CUT_${timestamp}.stl`;
+      a.download = fileName;
+      a.rel = 'noopener';
+      
+      console.log(`[Export] Triggering download for: ${fileName}`);
+      
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
     } catch (error) {
       console.error("Export error:", error);
       alert(t.errorExport);
@@ -193,68 +104,66 @@ export default function Sidebar() {
     }
   };
 
+  const handleClearRequest = () => {
+    if (!showConfirmClear) {
+      clearChannels();
+      return;
+    }
+    setConfirmModal('clear');
+    setDontShowAgain(false);
+  };
+
+  const handleResetRequest = () => {
+    if (!showConfirmReset) {
+      resetApp();
+      return;
+    }
+    setConfirmModal('reset');
+    setDontShowAgain(false);
+  };
+
+  const executeConfirmedAction = () => {
+    if (confirmModal === 'clear') {
+      clearChannels();
+      if (dontShowAgain) setShowConfirmClear(false);
+    } else if (confirmModal === 'reset') {
+      resetApp();
+      if (dontShowAgain) setShowConfirmReset(false);
+    }
+    setConfirmModal(null);
+  };
+
   return (
-    <div className="sidebar" style={{
-      width: '320px',
-      backgroundColor: 'var(--panel-bg)',
-      borderRight: '1px solid var(--border-color)',
-      display: 'flex',
-      flexDirection: 'column',
-      padding: '24px',
-      boxSizing: 'border-box',
-      zIndex: 10
-    }}>
-      <div className="sidebar-header" style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+    <div className="sidebar">
+      <div className="sidebar-header">
+        <div className="sidebar-header-top">
           <div>
-            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-              {t.title}
-            </h2>
-            <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              {t.subtitle}
-            </p>
+            <h2 className="sidebar-title">{t.title}</h2>
+            <p className="sidebar-subtitle">{t.subtitle}</p>
           </div>
-          <div style={{ display: 'flex', gap: '4px' }}>
+          <div className="sidebar-actions">
             <button 
               onClick={() => setIsHelpOpen(true)}
-              style={{ 
-                background: 'none', border: 'none', color: 'var(--text-secondary)', 
-                cursor: 'pointer', padding: '8px', borderRadius: '50%'
-              }}
+              className="icon-btn"
               title={t.help}
             >
               <HelpCircle size={18} />
             </button>
             <button 
               onClick={toggleDarkMode}
-              style={{ 
-                background: 'none', border: 'none', color: 'var(--text-secondary)', 
-                cursor: 'pointer', padding: '8px', borderRadius: '50%'
-              }}
+              className="icon-btn"
             >
               {darkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
           </div>
         </div>
 
-        {/* Language Picker */}
-        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+        <div className="language-picker">
           {['en', 'de', 'hu'].map(lang => (
             <button 
               key={lang}
               onClick={() => setLanguage(lang)}
-              style={{
-                background: 'none',
-                border: 'none',
-                fontSize: '11px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                color: language === lang ? 'var(--accent-color)' : 'var(--text-secondary)',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                backgroundColor: language === lang ? 'var(--card-active-bg)' : 'transparent',
-                textTransform: 'uppercase'
-              }}
+              className={`lang-btn ${language === lang ? 'active' : ''}`}
             >
               {lang}
             </button>
@@ -262,28 +171,31 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <button className="btn" onClick={handleImportClick} style={{ width: '100%' }}>
+      <div className="main-actions">
+        <button className="btn" onClick={handleImportClick}>
           <Upload size={16} /> {t.import}
         </button>
         <input 
           type="file" 
           ref={fileInputRef} 
-          style={{ display: 'none' }} 
+          className="hidden" 
+          style={{ display: 'none' }}
           accept=".stl"
           onChange={handleFileChange}
         />
         
-        <button className="btn" disabled={!activeModelId || isExporting} onClick={handleExportClick} style={{ width: '100%' }}>
-          <Download size={16} /> {isExporting ? t.exporting : t.export}
-        </button>
+        <div className="main-actions-group">
+          <button className="btn" style={{ flex: 1 }} disabled={!activeModelId || isExporting} onClick={handleExportClick}>
+            <Download size={16} /> {isExporting ? t.exporting : t.export}
+          </button>
+        </div>
       </div>
 
       {activeModelId && (
         <>
-          <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '24px 0' }} />
+          <hr className="sidebar-divider" />
           
-          <div style={{ marginBottom: '20px' }}>
+          <div className="section-controls">
             <button 
               className="btn" 
               onClick={() => setIsEditing(!isEditing)}
@@ -300,8 +212,7 @@ export default function Sidebar() {
             </button>
           </div>
 
-          {/* Section View */}
-          <div style={{ marginBottom: '8px' }}>
+          <div className="section-controls">
             <button
               id="btn-section-view"
               className="btn"
@@ -320,10 +231,9 @@ export default function Sidebar() {
             </button>
           </div>
 
-          {/* Section angle slider */}
           {isSectionView && (
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '8px', color: 'var(--text-secondary)' }}>
+            <div className="section-controls">
+              <label className="control-label">
                 {t.sectionAngle}: {Math.round((sectionPlaneAngle * 180) / Math.PI)}°
               </label>
               <input
@@ -333,17 +243,16 @@ export default function Sidebar() {
                 step="1"
                 value={Math.round((sectionPlaneAngle * 180) / Math.PI)}
                 onChange={(e) => setSectionPlaneAngle((parseFloat(e.target.value) * Math.PI) / 180)}
-                style={{ width: '100%' }}
+                className="w-full"
               />
-              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', textAlign: 'center' }}>
+              <div className="section-hint">
                 {t.sectionHint}
               </div>
             </div>
           )}
 
-
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '8px', color: 'var(--text-secondary)' }}>
+          <div className="section-controls">
+            <label className="control-label">
               {t.diameter}: {currentDiameter.toFixed(1)} mm
             </label>
             <input 
@@ -361,36 +270,38 @@ export default function Sidebar() {
                 }
               }}
               onPointerUp={() => { if (activeChannel) useStore.getState()._saveHistory(); }}
+              className="w-full"
             />
           </div>
 
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-            <h4 style={{ margin: '0 0 12px 0', fontSize: '13px', color: 'var(--text-primary)' }}>
-              {t.holes} ({activeModel.channels.length})
+          <div className="holes-container">
+            <h4 className="holes-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>{t.holes} ({activeModel.channels.length})</span>
+              {activeModel.channels.length > 0 && (
+                <button 
+                  onClick={handleClearRequest} 
+                  className="icon-btn" 
+                  title={t.clearHoles}
+                  style={{ padding: '2px', color: 'var(--text-secondary)' }}
+                >
+                  <Eraser size={14} />
+                </button>
+              )}
             </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', paddingRight: '4px' }}>
+            <div className="holes-list">
               {activeModel.channels.map((ch, idx) => {
                 const isActive = activeChannelId === ch.id;
                 return (
                   <div 
                     key={ch.id} 
                     onClick={() => useStore.setState({ activeChannelId: ch.id })}
-                    style={{
-                      padding: '12px', 
-                      borderRadius: '10px', 
-                      border: `2px solid ${isActive ? 'var(--card-active-border)' : 'var(--border-color)'}`,
-                      backgroundColor: isActive ? 'var(--card-active-bg)' : 'var(--card-bg)',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      cursor: 'pointer'
-                    }}
+                    className={`hole-item ${isActive ? 'active' : ''}`}
                   >
                     <div>
-                      <div style={{ fontWeight: '600', fontSize: '13px', color: isActive ? 'var(--accent-color)' : 'var(--text-primary)' }}>
+                      <div className="hole-name">
                         {t.hole} #{idx + 1}
                       </div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                      <div className="hole-info">
                         Ø {ch.diameter.toFixed(1)} mm
                       </div>
                     </div>
@@ -399,10 +310,7 @@ export default function Sidebar() {
                         e.stopPropagation();
                         removeChannel(activeModelId, ch.id);
                       }}
-                      style={{ 
-                        background: 'none', border: 'none', color: '#ef4444', 
-                        cursor: 'pointer', padding: '6px', opacity: 0.8
-                      }}
+                      className="delete-btn"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -412,7 +320,7 @@ export default function Sidebar() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
+          <div className="history-controls">
             <button className="btn" style={{ flex: 1, backgroundColor: 'var(--border-color)', color: 'var(--text-primary)' }} 
                     onClick={undo} disabled={historyIndex <= 0}>
               <Undo size={14} /> {t.undo}
@@ -425,39 +333,74 @@ export default function Sidebar() {
         </>
       )}
 
-      {/* Footer / Disclaimer */}
-      <div style={{ marginTop: 'auto', paddingTop: '24px', fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center' }}>
-        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{t.version}</div>
-        <p style={{ margin: 0, lineHeight: '1.4' }}>
+      <div className="sidebar-footer">
+        <div className="sidebar-footer-top" style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '8px' }}>
+          <div className="version-tag">{t.version}</div>
+          {activeModelId && (
+            <button 
+              className="icon-btn btn-danger" 
+              onClick={handleResetRequest} 
+              title={t.resetApp}
+              style={{ padding: '2px', opacity: 0.6 }}
+            >
+              <RotateCcw size={14} />
+            </button>
+          )}
+        </div>
+        <div style={{ fontSize: '10px', marginBottom: '8px', opacity: 0.8 }}>
+          {t.copyright}
+        </div>
+        <p className="disclaimer-text">
           {t.disclaimer}
         </p>
       </div>
 
-      {/* Wiki Modal */}
+      {confirmModal && (
+        <div className="modal-overlay" onClick={() => setConfirmModal(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ width: '400px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', color: '#ef4444' }}>
+              <AlertTriangle size={24} />
+              <h3 style={{ margin: 0 }}>{confirmModal === 'clear' ? t.clearHoles : t.resetApp}</h3>
+            </div>
+            
+            <p style={{ fontSize: '14px', lineHeight: '1.5', marginBottom: '20px' }}>
+              {confirmModal === 'clear' ? t.confirmClear : t.confirmReset}
+            </p>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', marginBottom: '24px', userSelect: 'none' }}>
+              <input 
+                type="checkbox" 
+                checked={dontShowAgain} 
+                onChange={(e) => setDontShowAgain(e.target.checked)}
+              />
+              {t.dontShowAgain}
+            </label>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button className="btn" onClick={() => setConfirmModal(null)} style={{ flex: 1, backgroundColor: 'var(--border-color)', color: 'var(--text-primary)' }}>
+                {t.cancel}
+              </button>
+              <button className="btn" onClick={executeConfirmedAction} style={{ flex: 1, backgroundColor: '#ef4444', color: 'white' }}>
+                {t.confirm}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isHelpOpen && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-          backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
-          display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
-        }} onClick={closeHelp}>
-          <div style={{
-            width: '450px', backgroundColor: 'var(--panel-bg)', borderRadius: '16px',
-            padding: '32px', position: 'relative', boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-            border: '1px solid var(--border-color)', color: 'var(--text-primary)'
-          }} onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={closeHelp}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
             <button 
               onClick={closeHelp}
-              style={{
-                position: 'absolute', top: '16px', right: '16px',
-                background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer'
-              }}
+              className="modal-close-btn"
             >
               <X size={20} />
             </button>
-            <h2 style={{ marginTop: 0, borderBottom: '2px solid var(--accent-color)', paddingBottom: '12px' }}>
+            <h2 className="modal-title">
               {t.help}
             </h2>
-            <div style={{ fontSize: '14px', lineHeight: '1.6' }} dangerouslySetInnerHTML={{ __html: wikiContent[language] || wikiContent.en }} />
+            <div className="modal-body" dangerouslySetInnerHTML={{ __html: wikiContent[language] || wikiContent.en }} />
             <button className="btn" onClick={closeHelp} style={{ marginTop: '24px', width: '100%' }}>
               {t.close}
             </button>

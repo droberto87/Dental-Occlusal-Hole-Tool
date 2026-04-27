@@ -190,14 +190,14 @@ function douglasPeucker2D(pts, epsilon) {
  * Returns raw 3D loops for debug visualisation.
  * Call this with the same geometry + plane you pass to buildCappingMesh.
  */
-export function extractContourLoops(geometry, plane) {
+function extractContourLoops(geometry, plane) {
   const segments = extractSegments(geometry, plane);
   return connectSegmentsToLoops(segments, plane.normal);
 }
 
 // ─── Public: computeAutoAlignAngle ───────────────────────────────────────────
 
-export function computeAutoAlignAngle(geometry, channelAxis, channelMidpoint) {
+function computeAutoAlignAngle(geometry, channelAxis, channelMidpoint) {
   const arb = Math.abs(channelAxis.y) < 0.9
     ? new THREE.Vector3(0, 1, 0)
     : new THREE.Vector3(1, 0, 0);
@@ -228,7 +228,7 @@ export function computeAutoAlignAngle(geometry, channelAxis, channelMidpoint) {
 
 // ─── Public: buildSectionPlane ────────────────────────────────────────────────
 
-export function buildSectionPlane(channel, angle) {
+function buildSectionPlane(channel, angle) {
   const axis = channel.endPoint.clone().sub(channel.startPoint).normalize();
   const midpoint = channel.startPoint.clone().lerp(channel.endPoint, 0.5);
   const arb = Math.abs(axis.y) < 0.9
@@ -245,6 +245,7 @@ export function buildSectionPlane(channel, angle) {
 
 // ─── 2D point-in-polygon (ray casting) ───────────────────────────────────────
 
+/*
 function pointInPolygon2D(x, y, pts) {
   let inside = false;
   for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
@@ -255,6 +256,7 @@ function pointInPolygon2D(x, y, pts) {
   }
   return inside;
 }
+*/
 
 // ─── Build BufferGeometry from 2D positions + index array + 3D transform ─────
 
@@ -321,7 +323,7 @@ function triMinWeight(outerPts2D, midpoint, u, v) {
 
 // ─── Public: buildCappingMesh ────────────────────────────────────────────────
 
-export function buildCappingMesh(geometry, plane, { u, v, normal, midpoint }, activeChannels = [], algorithm = 'EARCUT') {
+function buildCappingMesh(geometry, plane, { u, v, normal, midpoint }, _unused = [], algorithm = 'EARCUT') {
   const segments = extractSegments(geometry, plane);
   const loops    = connectSegmentsToLoops(segments, normal);
 
@@ -349,6 +351,7 @@ export function buildCappingMesh(geometry, plane, { u, v, normal, midpoint }, ac
   });
 
   // Channel bore rectangles
+  /*
   const channelHolePaths = activeChannels.map(ch => {
     if (!ch.startPoint || !ch.endPoint) return null;
     const r = (ch.diameter / 2) * 1.05;
@@ -362,13 +365,22 @@ export function buildCappingMesh(geometry, plane, { u, v, normal, midpoint }, ac
     hp.closePath();
     return hp;
   }).filter(Boolean);
+  */
 
   const DP_EPSILON = 0.005; // 5 microns - much higher precision for curved edges
   const outerPts  = douglasPeucker2D(to2D(outers[0]), DP_EPSILON);
+  // eslint-disable-next-line no-unused-vars
   const holePts2D = innerHoles.map(h => douglasPeucker2D(to2D(h), DP_EPSILON));
 
-  console.log(`[Cap] alg=${algorithm} outer=${outerPts.length}pts holes=${holePts2D.length}`);
+  console.log(`[Cap] alg=${algorithm} outer=${outerPts.length}pts holes=${innerHoles.length}`);
 
   return triMinWeight(outerPts, midpoint, u, v);
 }
+
+export {
+  extractContourLoops,
+  computeAutoAlignAngle,
+  buildSectionPlane,
+  buildCappingMesh
+};
 

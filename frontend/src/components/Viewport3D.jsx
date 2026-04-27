@@ -8,16 +8,6 @@ import { computeAutoAlignAngle, buildSectionPlane, buildCappingMesh, extractCont
 // BVH-accelerated raycasting (patched once at module level)
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
 
-// Silence deprecation warnings
-const _origWarn = console.warn;
-console.warn = (...args) => {
-  if (typeof args[0] === 'string' && (
-    args[0].includes('THREE.Clock') ||
-    args[0].includes('THREE.Color: Unknown color')
-  )) return;
-  _origWarn.apply(console, args);
-};
-
 import useStore from '../store/useStore';
 let _activeControls = null;
 let _currentSectionBasis = null; // Shared basis for constrained dragging
@@ -225,6 +215,8 @@ function ChannelVisualizer({ channel, sectionViewActive }) {
   const dirty    = useRef(true);
   const isDragStart = useRef(false);
   const isDragEnd   = useRef(false);
+  const wheelTimeoutRef = useRef(null);
+  const rotTimeoutRef   = useRef(null);
 
   // Sync from props when not dragging
   useEffect(() => {
@@ -429,9 +421,10 @@ function ChannelVisualizer({ channel, sectionViewActive }) {
       updateChannel(activeModelId, id, { diameter: newDiam }, false);
       
       // Debounce the history save so we don't spam the undo stack
-      if (window._wheelTimeout) clearTimeout(window._wheelTimeout);
-      window._wheelTimeout = setTimeout(() => {
+      if (wheelTimeoutRef.current) clearTimeout(wheelTimeoutRef.current);
+      wheelTimeoutRef.current = setTimeout(() => {
         useStore.getState()._saveHistory();
+        wheelTimeoutRef.current = null;
       }, 400);
     }
   });
@@ -580,9 +573,10 @@ function ChannelVisualizer({ channel, sectionViewActive }) {
               endPoint: endRef.current.clone()
             }, false);
             
-            if (window._rotTimeout) clearTimeout(window._rotTimeout);
-            window._rotTimeout = setTimeout(() => {
+            if (rotTimeoutRef.current) clearTimeout(rotTimeoutRef.current);
+            rotTimeoutRef.current = setTimeout(() => {
               useStore.getState()._saveHistory();
+              rotTimeoutRef.current = null;
             }, 300);
           }}
         >
@@ -951,43 +945,37 @@ function CylinderPreview({ start, end, diameter }) {
 }
 
 function ModelViewer() {
-  const { camera } = useThree();
   const {
     models, activeModelId, activeChannelId,
-    placementStep, setPlacementStep,
-    setTempStartPoint, setTempEndPoint, tempStartPoint, tempEndPoint,
-    addChannel, defaultDiameter, setIsEditing, isEditing, darkMode,
+    addChannel, defaultDiameter, setIsEditing, isEditing,
     isSectionView
   } = useStore();
   const activeModel = models.find(m => m.id === activeModelId);
   const activeChannel = activeModel?.channels?.find(c => c.id === activeChannelId);
-  const matRef = useRef(createChannelMaterial());
+  const mat = React.useMemo(() => createChannelMaterial(), []);
 
   // Register model material for section-view clipping
   useEffect(() => {
-    _clippableMaterials.add(matRef.current);
-    return () => _clippableMaterials.delete(matRef.current);
-  }, []);
+    _clippableMaterials.add(mat);
+    return () => _clippableMaterials.delete(mat);
+  }, [mat]);
 
   React.useEffect(() => {
-    if (matRef.current) {
-      // Neutral bright grey for optimal visibility in both themes
-      matRef.current.color.set('#e0e0e0');
-    }
-  }, []);
+    mat.color.set('#e0e0e0');
+  }, [mat]);
 
   // Update cylinder uniforms every frame from live cache or store
   useFrame(() => {
-    const shader = matRef.current.userData.shader;
+    const shader = mat.userData.shader;
     if (!shader || !activeModel) return;
     const chs = activeModel.channels.filter(c => c.startPoint && c.endPoint);
     const n = Math.min(chs.length, MAX_CYL);
     shader.uniforms.uCylCount.value = n;
     for (let i = 0; i < n; i++) {
       const live = _liveChannels.get(chs[i].id);
-      matRef.current.userData.cylStarts[i].copy(live ? live.start : chs[i].startPoint);
-      matRef.current.userData.cylEnds[i].copy(live ? live.end : chs[i].endPoint);
-      matRef.current.userData.cylRadii[i] = (live ? live.diameter : chs[i].diameter) / 2;
+      mat.userData.cylStarts[i].copy(live ? live.start : chs[i].startPoint);
+      mat.userData.cylEnds[i].copy(live ? live.end : chs[i].endPoint);
+      mat.userData.cylRadii[i] = (live ? live.diameter : chs[i].diameter) / 2;
     }
   });
 
@@ -1027,7 +1015,7 @@ function ModelViewer() {
 
   return (
     <group>
-      <mesh geometry={activeModel.geometry} material={matRef.current}
+      <mesh geometry={activeModel.geometry} material={mat}
         onClick={handleClick} onDoubleClick={handleDoubleClick} castShadow receiveShadow
       />
       {activeModel.channels.map(ch => (
