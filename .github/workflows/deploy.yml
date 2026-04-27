@@ -32,3 +32,4 @@ jobs:
         with:
           folder: frontend/dist
           branch: gh-pages
+          commit-message: "Deploy to gh-pages [skip ci]"
