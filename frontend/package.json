@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "node deploy.js"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -29,6 +30,8 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "terser": "^5.46.2",
-    "vite": "^8.0.10"
+    "vite": "^8.0.10",
+    "basic-ftp": "^5.3.0",
+    "dotenv": "^17.4.2"
   }
 }
