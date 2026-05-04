@@ -1,13 +1,180 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dental Occlusal Hole Tool</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Az eszköz elköltözött - 918MC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #fcfafc;
+            --text-primary: #2d1b2d;
+            --text-secondary: #7b6a7b;
+            --accent-color: #a78baa;
+            --accent-hover: #967499;
+            --border-color: rgba(45, 27, 45, 0.1);
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+            --glass-blur: 15px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated Background Blobs */
+        .blob {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-color) 0%, transparent 70%);
+            filter: blur(100px);
+            opacity: 0.12;
+            z-index: -1;
+            animation: float 20s infinite alternate cubic-bezier(0.45, 0, 0.55, 1);
+        }
+
+        .blob-1 { top: -200px; right: -200px; }
+        .blob-2 { bottom: -200px; left: -200px; animation-delay: -10s; }
+
+        @keyframes float {
+            from { transform: translate(0, 0) rotate(0deg); }
+            to { transform: translate(-100px, 100px) rotate(30deg); }
+        }
+
+        .container {
+            max-width: 600px;
+            width: 90%;
+            padding: 4rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border-color);
+            border-radius: 40px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 3rem;
+            color: var(--text-primary);
+            opacity: 0.8;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1.5px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 1.2rem 2.5rem;
+            background: var(--accent-color);
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            border-radius: 50px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 20px rgba(167, 139, 170, 0.2);
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(167, 139, 170, 0.4);
+        }
+
+        .countdown {
+            margin-top: 3rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        #seconds {
+            color: var(--accent-color);
+            font-weight: 800;
+        }
+    </style>
+    <script>
+        let seconds = 5;
+        const targetUrl = "https://918.hu/tools/occlusal-hole-tool/";
+
+        function countdown() {
+            const el = document.getElementById('seconds');
+            if (seconds <= 0) {
+                window.location.href = targetUrl;
+                return;
+            }
+            el.innerText = seconds;
+            seconds--;
+            setTimeout(countdown, 1000);
+        }
+
+        window.onload = countdown;
+    </script>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="container">
+        <div class="logo">918MC</div>
+        <h1>Az eszköz elköltözött</h1>
+        <p>Az Occlusal Hole Tool mostantól a 918.hu központi eszköztárában érhető el, modernebb környezetben.</p>
+        
+        <a href="https://918.hu/tools/occlusal-hole-tool/" class="btn">
+            Tovább az új címre
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+
+        <div class="countdown">
+            Átirányítás <span id="seconds">5</span> másodperc múlva...
+        </div>
+    </div>
+</body>
 </html>
